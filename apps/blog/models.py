@@ -19,4 +19,12 @@ class Blog(models.Model):
     def __str__(self):
         return 'Blog: {}, Status: {}'.format(
             self.title, "enabled" if self.enabled else "disabled"
-            )
+        )
+
+
+class Comment(models.Model):
+    text = models.TextField()
+    blog = models.ForeignKey(Blog, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.text[:50]}..."
