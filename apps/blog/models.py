@@ -13,7 +13,7 @@ class Blog(models.Model):
     slug = models.SlugField(max_length=100, unique=True)
     body = models.TextField()
     posted = models.DateField(db_index=True, auto_now_add=True)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, default=1, on_delete=models.CASCADE)
     enabled = models.BooleanField(default=True)
 
     def __str__(self):
@@ -24,7 +24,9 @@ class Blog(models.Model):
 
 class Comment(models.Model):
     text = models.TextField()
-    blog_id = models.ForeignKey(Blog, on_delete=models.CASCADE)
+    blog_id = models.ForeignKey(
+        Blog, related_name='commentitem', on_delete=models.CASCADE
+        )
 
     def __str__(self):
         return f"{self.text[:50]}..."

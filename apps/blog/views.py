@@ -3,6 +3,8 @@ from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework import mixins
+from django.core import serializers
+
 
 from apps.blog.models import Category, Blog, Comment
 from apps.blog.serializers import (CategorySerializer,
@@ -43,7 +45,11 @@ class BlogDetail(
     authentication_classes = ()
 
     def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+        comments = Blog.objects.get(id=kwargs['pk']).commentitem.all().values()
+        blog = self.retrieve(request, *args, **kwargs)
+
+        context = {'blog': blog.data, 'comments': comments}
+        return Response(context, content_type='application/json')
 
 
 class CommentListView(
