@@ -24,7 +24,7 @@ class Blog(models.Model):
 
 class Comment(models.Model):
     text = models.TextField()
-    blog = models.ForeignKey(Blog, on_delete=models.CASCADE)
+    blog_id = models.ForeignKey(Blog, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.text[:50]}..."

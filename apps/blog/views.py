@@ -4,8 +4,10 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework import mixins
 
-from apps.blog.models import Category, Blog
-from apps.blog.serializers import CategorySerializer, BlogSerializer
+from apps.blog.models import Category, Blog, Comment
+from apps.blog.serializers import (CategorySerializer,
+                                   BlogSerializer,
+                                   CommentSerializer)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -42,3 +44,20 @@ class BlogDetail(
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
+
+
+class CommentListView(
+        mixins.ListModelMixin,
+        mixins.CreateModelMixin,
+        GenericAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+    permission_classes = (AllowAny,)
+    authentication_classes = ()
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
