@@ -15,3 +15,8 @@ class Blog(models.Model):
     posted = models.DateField(db_index=True, auto_now_add=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     enabled = models.BooleanField(default=True)
+
+    def __str__(self):
+        return 'Blog: {}, Status: {}'.format(
+            self.title, "enabled" if self.enabled else "disabled"
+            )
