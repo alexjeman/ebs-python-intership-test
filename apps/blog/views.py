@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+from rest_framework import mixins
 
 from apps.blog.models import Category, Blog
 from apps.blog.serializers import CategorySerializer, BlogSerializer
@@ -12,25 +13,32 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
 
 
-class BlogListView(GenericAPIView):
+class BlogListView(
+        mixins.ListModelMixin,
+        mixins.CreateModelMixin,
+        GenericAPIView):
+    queryset = Blog.objects.all()
     serializer_class = BlogSerializer
 
     permission_classes = (AllowAny,)
     authentication_classes = ()
 
-    def get(self, request):
-        blogs = Blog.objects.all()
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
-        return Response(BlogSerializer(blogs, many=True).data)
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
 
 
-class BlogItemView(GenericAPIView):
+class BlogDetail(
+        mixins.RetrieveModelMixin,
+        GenericAPIView):
+
+    queryset = Blog.objects.all()
     serializer_class = BlogSerializer
 
     permission_classes = (AllowAny,)
     authentication_classes = ()
 
-    def get(self, request, pk):
-        blog = get_object_or_404(Blog.objects.filter(pk=pk))
-
-        return Response(BlogSerializer(blog).data)
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
