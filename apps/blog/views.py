@@ -2,8 +2,7 @@ from rest_framework import viewsets
 from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from rest_framework import mixins
-from django.core import serializers
+from drf_util.decorators import serialize_decorator
 
 
 from apps.blog.models import Category, Blog, Comment
@@ -17,53 +16,60 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
 
 
-class BlogListView(
-        mixins.ListModelMixin,
-        mixins.CreateModelMixin,
-        GenericAPIView):
-    queryset = Blog.objects.all()
+class BlogListView(GenericAPIView):
     serializer_class = BlogSerializer
 
     permission_classes = (AllowAny,)
     authentication_classes = ()
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+    def get(self, request):
+        blogs = Blog.objects.all()
+        return Response(BlogSerializer(blogs, many=True).data)
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+    @serialize_decorator(BlogSerializer)
+    def post(self, request):
+        validated_data = request.serializer.validated_data
+
+        blog = Blog.objects.create(
+            title=validated_data['title'],
+            slug=validated_data['slug'],
+            body=validated_data['body'],
+            enabled=validated_data['enabled'],
+            category=validated_data['category']
+        )
+        blog.save()
+
+        return Response(BlogSerializer(blog).data)
 
 
-class BlogDetail(
-        mixins.RetrieveModelMixin,
-        GenericAPIView):
-
-    queryset = Blog.objects.all()
+class BlogItemView(GenericAPIView):
     serializer_class = BlogSerializer
 
     permission_classes = (AllowAny,)
     authentication_classes = ()
 
-    def get(self, request, *args, **kwargs):
-        comments = Blog.objects.get(id=kwargs['pk']).commentitem.all().values()
-        blog = self.retrieve(request, *args, **kwargs)
+    def get(self, request, pk):
+        comments = Blog.objects.get(id=pk).commentitem.all().values()
+        blog = get_object_or_404(Blog.objects.filter(pk=pk))
 
-        context = {'blog': blog.data, 'comments': comments}
+        context = {'blog': BlogSerializer(blog).data, 'comments': comments}
         return Response(context, content_type='application/json')
 
 
-class CommentListView(
-        mixins.ListModelMixin,
-        mixins.CreateModelMixin,
-        GenericAPIView):
-    queryset = Comment.objects.all()
+class CommentListView(GenericAPIView):
     serializer_class = CommentSerializer
 
     permission_classes = (AllowAny,)
     authentication_classes = ()
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+    @serialize_decorator(CommentSerializer)
+    def post(self, request):
+        validated_data = request.serializer.validated_data
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+        comment = Comment.objects.create(
+            text=validated_data['text'],
+            blog_id=validated_data['blog_id']
+        )
+        comment.save()
+
+        return Response(CommentSerializer(comment).data)

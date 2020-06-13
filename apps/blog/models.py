@@ -7,6 +7,9 @@ class Category(models.Model):
     title = models.CharField(max_length=100, db_index=True)
     slug = models.SlugField(max_length=100, db_index=True)
 
+    def __str__(self):
+        return 'Category: {}'.format(self.title)
+
 
 class Blog(models.Model):
     title = models.CharField(max_length=100, unique=True)
@@ -26,7 +29,7 @@ class Comment(models.Model):
     text = models.TextField()
     blog_id = models.ForeignKey(
         Blog, related_name='commentitem', on_delete=models.CASCADE
-        )
+    )
 
     def __str__(self):
-        return f"{self.text[:50]}..."
+        return '{}...'.format(self.text[:50])
